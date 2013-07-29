@@ -1,4 +1,4 @@
- // free RAM check for debugging. SRAM for ATmega328p = 2048Kb.
+// free RAM check for debugging. SRAM for ATmega328p = 2048Kb.
 int availableMemory() {
     int size = 8*1024;
     byte *buf;
