@@ -25,6 +25,120 @@ void printButton(char* text, int x1, int y1, int x2, int y2, boolean fontsize = 
 }
 
 //-------------------------------------------------------------------------------------
+//					MENU SCREEN ********** dispScreen = 1 ************************/
+//-------------------------------------------------------------------------------------
+
+void menuScreen()
+{
+  printHeader("Choose Option");
+  
+  myGLCD.setColor(64, 64, 64);
+  myGLCD.drawRect(0, 196, 319, 194);
+  printButton("CANCEL", canC[0], canC[1], canC[2], canC[3], SMALL);  
+  
+  printButton("Time and Date", tanD[0], tanD[1], tanD[2], tanD[3]);
+  printButton("H2O Temp Control", temC[0], temC[1], temC[2], temC[3]);
+ // printButton("WaveMaker", wave[0], wave[1], wave[2], wave[3]);
+  printButton("General Settings", gSet[0], gSet[1], gSet[2], gSet[3]);    
+  printButton("LED Testing", tesT[0], tesT[1], tesT[2], tesT[3]);
+  printButton("Change LED Values", ledChM[0], ledChM[1], ledChM[2], ledChM[3]);
+ // printButton("Automatic Feeder", aFeed[0], aFeed[1], aFeed[2], aFeed[3]);
+  printButton("About", about[0], about[1], about[2], about[3]);  
+}
+
+//-------------------------------------------------------------------------------------
+//			TIME and DATE SCREEN ********** dispScreen = 2 
+//-------------------------------------------------------------------------------------
+
+void clockScreen(boolean refreshAll=true) 
+{
+  if (refreshAll)
+  {
+   rtcSet = mytime;
+   
+   // for (int i=0; i<7; i++) {
+   //rtcSet[i] = rtc[i];
+    //}
+    
+    printHeader("Time and Date Settings");
+
+    myGLCD.setColor(64, 64, 64);                   //Draw Dividers in Grey
+    myGLCD.drawRect(0, 196, 319, 194);             //Bottom Horizontal Divider
+    myGLCD.drawLine(0, 104, 319, 104);             //Middle Horizontal Divider
+    printButton("<< BACK >>", back[0], back[1], back[2], back[3], SMALL);
+    printButton("SAVE", prSAVE[0], prSAVE[1], prSAVE[2], prSAVE[3], SMALL);
+    printButton("CANCEL", canC[0], canC[1], canC[2], canC[3], SMALL);
+
+    printButton ("+", houU[0], houU[1], houU[2], houU[3], true);     //hour up
+    printButton ("+", minU[0], minU[1], minU[2], minU[3], true);     //min up
+    printButton ("-", houD[0], houD[1], houD[2], houD[3], true);     //hour down
+    printButton ("-", minD[0], minD[1], minD[2], minD[3], true);     //min down
+    if (setTimeFormat==1)
+      { printButton ("+", ampmU[0], ampmU[1], ampmU[2], ampmU[3], true); //AM/PM up    
+        printButton ("-", ampmD[0], ampmD[1], ampmD[2], ampmD[3], true);}//AM/PM down    
+        
+    printButton ("+", monU[0], monU[1], monU[2], monU[3], true);     //month up
+    printButton ("+", dayU[0], dayU[1], dayU[2], dayU[3], true);     //day up
+    printButton ("+", yeaU[0], yeaU[1], yeaU[2], yeaU[3], true);     //year up
+    printButton ("-", monD[0], monD[1], monD[2], monD[3], true);     //month down
+    printButton ("-", dayD[0], dayD[1], dayD[2], dayD[3], true);     //day down
+    printButton ("-", yeaD[0], yeaD[1], yeaD[2], yeaD[3], true);     //year down
+  }
+  
+  ReadFromEEPROM();
+  timeDispH=rtcSet.hour; timeDispM=rtcSet.min; 
+  xTimeH=107; yTime=52; xColon=xTimeH+42;
+  xTimeM10=xTimeH+70; xTimeM1=xTimeH+86; xTimeAMPM=xTimeH+155;
+  timeChange();
+
+  setFont(LARGE, 255, 255, 255, 0, 0, 0);    
+  myGLCD.print("Date", 20, 142);
+  myGLCD.print("/", 149, 142);    
+  myGLCD.print("/", 219, 142);
+  if (setCalendarFormat==0)                             //DD/MM/YYYY Format
+    {
+     setFont(SMALL, 255, 255, 255, 0, 0, 0); 
+     myGLCD.print("(DD/MM/YYYY)", 5, 160); 
+     setFont(LARGE, 255, 255, 255, 0, 0, 0);          
+     if ((rtcSet.date>=0) && (rtcSet.date<=9))              //Set DAY
+       { myGLCD.print("0", 107, 142);
+         myGLCD.printNumI(rtcSet.date, 123, 142);}
+     else { myGLCD.printNumI(rtcSet.date, 107, 142);} 
+     if ((rtcSet.mon>=0) && (rtcSet.mon<=9))              //Set MONTH
+       { myGLCD.print("0", 177, 142);
+         myGLCD.printNumI(rtcSet.mon, 193, 142);}
+     else { myGLCD.printNumI(rtcSet.mon, 177, 142);} 
+    } else
+  if (setCalendarFormat==1)                             //MM/DD/YYYY Format
+    {
+     setFont(SMALL, 255, 255, 255, 0, 0, 0); 
+     myGLCD.print("(MM/DD/YYYY)", 5, 160); 
+     setFont(LARGE, 255, 255, 255, 0, 0, 0);          
+     if ((rtcSet.mon>=0) && (rtcSet.mon<=9))              //Set MONTH
+       { myGLCD.print("0", 107, 142);
+         myGLCD.printNumI(rtcSet.mon, 123, 142);}
+     else { myGLCD.printNumI(rtcSet.mon, 107, 142);} 
+     if ((rtcSet.date>=0) && (rtcSet.date<=9))              //Set DAY
+       { myGLCD.print("0", 177, 142);
+         myGLCD.printNumI(rtcSet.date, 193, 142);}
+     else { myGLCD.printNumI(rtcSet.date, 177, 142);} 
+    }  
+  myGLCD.printNumI(rtcSet.year, 247, 142);                //Set YEAR
+}
+
+
+void waitForIt(int x1, int y1, int x2, int y2)   // Draw a red frame while a button is touched
+{
+  myGLCD.setColor(255, 0, 0);
+  myGLCD.drawRoundRect (x1, y1, x2, y2);
+  while (myTouch.dataAvailable()) {
+    myTouch.read(); 
+  }
+  myGLCD.setColor(255, 255, 255);
+  myGLCD.drawRoundRect (x1, y1, x2, y2);
+}
+
+//-------------------------------------------------------------------------------------
 //			H2O TEMP CONTROL SCREEN ********** dispScreen = 3
 //-------------------------------------------------------------------------------------
 
@@ -83,8 +197,67 @@ void tempScreen(boolean refreshAll=false)
   myGLCD.printNumF(temp2beA, 1, CENTER, 154);
 }
 
+
+void timeChange()
+{
+  setFont(LARGE, 255, 255, 255, 0, 0, 0); 
+  myGLCD.print("Time", 20, yTime);
+
+ 
+  if (setTimeFormat==0)                                 //24HR Format
+    { setFont(SMALL, 255, 255, 255, 0, 0, 0); 
+      myGLCD.print("(24HR)", 29, yTime+18);}
+
+     
+    if (setTimeFormat==1)                                 //12HR Format
+    { setFont(SMALL, 255, 255, 255, 0, 0, 0);  
+      myGLCD.print("(12HR)", 29, yTime+18);}
+
+  timeCorrectFormat();
+}
+
+void timeCorrectFormat()
+{
+  setFont(LARGE, 255, 255, 255, 0, 0, 0);   
+  myGLCD.print(":",  xColon, yTime);  
+  if (setTimeFormat==0)                                 //24HR Format
+    {
+     setFont(LARGE, 255, 255, 255, 0, 0, 0);  
+     if ((timeDispH>=0) && (timeDispH<=9))              //Set HOUR
+       { myGLCD.print("0", xTimeH, yTime);
+         myGLCD.printNumI(timeDispH, xTimeH+16, yTime);}
+     else { myGLCD.printNumI(timeDispH, xTimeH, yTime);} 
+    }    
+  if (setTimeFormat==1)                                 //12HR Format
+    {
+     setFont(LARGE, 255, 255, 255, 0, 0, 0);  
+     if (timeDispH==0)                                  //Set HOUR
+       { myGLCD.print("12", xTimeH, yTime);}
+     if ((timeDispH>=1) && (timeDispH<=9))
+       { myGLCD.print("0", xTimeH, yTime);
+         myGLCD.printNumI(timeDispH, xTimeH+16, yTime);}
+     if ((timeDispH>=10) && (timeDispH<=12))
+       { myGLCD.printNumI(timeDispH, xTimeH, yTime);}
+     if ((timeDispH>=13) && (timeDispH<=21))
+       { myGLCD.print("0", xTimeH, yTime);
+         myGLCD.printNumI(timeDispH-12, xTimeH+16, yTime);}
+     if (timeDispH>=22)
+       { myGLCD.printNumI(timeDispH-12, xTimeH, yTime);}
+      
+     if (AM_PM==1)
+       { myGLCD.print("AM", xTimeAMPM, yTime); }
+     if (AM_PM==2)
+       { myGLCD.print("PM", xTimeAMPM, yTime); }
+    }
+  if ((timeDispM>=0) && (timeDispM<=9))                 //Set MINUTES
+    { myGLCD.print("0", xTimeM10, yTime);
+      myGLCD.printNumI(timeDispM, xTimeM1, yTime);}
+  else { myGLCD.printNumI(timeDispM, xTimeM10, yTime);} 
+}    
+
+
 //-------------------------------------------------------------------------------------
-//					LED TESTING OPTIONS SCREEN ******** dispScreen = 4 
+//					LED TESTING OPTIONS SCREEN dispScreen = 4 
 //-------------------------------------------------------------------------------------
 
 void ledTestOptionsScreen()
@@ -461,7 +634,7 @@ void ledValuesScreen()
 }
 
 //-------------------------------------------------------------------------------------
-//			CHANGE LED VALUES SCREEN ********** dispScreen = 9
+//			CHANGE LED VALUES SCREEN dispScreen = 9
 //-------------------------------------------------------------------------------------
 
 void ledChangeScreen()
@@ -502,160 +675,7 @@ void ledChangeScreen()
 }
 
 //-------------------------------------------------------------------------------------
-//				END OF CHANGE LED VALUES SCREEN
-//-------------------------------------------------------------------------------------
-
-void timeChange()
-{
-  setFont(LARGE, 255, 255, 255, 0, 0, 0); 
-  myGLCD.print("Time", 20, yTime);
-
- 
-  if (setTimeFormat==0)                                 //24HR Format
-    { setFont(SMALL, 255, 255, 255, 0, 0, 0); 
-      myGLCD.print("(24HR)", 29, yTime+18);}
-
-     
-    if (setTimeFormat==1)                                 //12HR Format
-    { setFont(SMALL, 255, 255, 255, 0, 0, 0);  
-      myGLCD.print("(12HR)", 29, yTime+18);}
-
-  timeCorrectFormat();
-}
-
-void timeCorrectFormat()
-{
-  setFont(LARGE, 255, 255, 255, 0, 0, 0);   
-  myGLCD.print(":",  xColon, yTime);  
-  if (setTimeFormat==0)                                 //24HR Format
-    {
-     setFont(LARGE, 255, 255, 255, 0, 0, 0);  
-     if ((timeDispH>=0) && (timeDispH<=9))              //Set HOUR
-       { myGLCD.print("0", xTimeH, yTime);
-         myGLCD.printNumI(timeDispH, xTimeH+16, yTime);}
-     else { myGLCD.printNumI(timeDispH, xTimeH, yTime);} 
-    }    
-  if (setTimeFormat==1)                                 //12HR Format
-    {
-     setFont(LARGE, 255, 255, 255, 0, 0, 0);  
-     if (timeDispH==0)                                  //Set HOUR
-       { myGLCD.print("12", xTimeH, yTime);}
-     if ((timeDispH>=1) && (timeDispH<=9))
-       { myGLCD.print("0", xTimeH, yTime);
-         myGLCD.printNumI(timeDispH, xTimeH+16, yTime);}
-     if ((timeDispH>=10) && (timeDispH<=12))
-       { myGLCD.printNumI(timeDispH, xTimeH, yTime);}
-     if ((timeDispH>=13) && (timeDispH<=21))
-       { myGLCD.print("0", xTimeH, yTime);
-         myGLCD.printNumI(timeDispH-12, xTimeH+16, yTime);}
-     if (timeDispH>=22)
-       { myGLCD.printNumI(timeDispH-12, xTimeH, yTime);}
-      
-     if (AM_PM==1)
-       { myGLCD.print("AM", xTimeAMPM, yTime); }
-     if (AM_PM==2)
-       { myGLCD.print("PM", xTimeAMPM, yTime); }
-    }
-  if ((timeDispM>=0) && (timeDispM<=9))                 //Set MINUTES
-    { myGLCD.print("0", xTimeM10, yTime);
-      myGLCD.printNumI(timeDispM, xTimeM1, yTime);}
-  else { myGLCD.printNumI(timeDispM, xTimeM10, yTime);} 
-}    
-
-//-------------------------------------------------------------------------------------
-//			TIME and DATE SCREEN ********** dispScreen = 2 
-//-------------------------------------------------------------------------------------
-
-void clockScreen(boolean refreshAll=true) 
-{
-  if (refreshAll)
-  {
-   rtcSet = mytime;
-   
-   // for (int i=0; i<7; i++) {
-   //rtcSet[i] = rtc[i];
-    //}
-    
-    printHeader("Time and Date Settings");
-
-    myGLCD.setColor(64, 64, 64);                   //Draw Dividers in Grey
-    myGLCD.drawRect(0, 196, 319, 194);             //Bottom Horizontal Divider
-    myGLCD.drawLine(0, 104, 319, 104);             //Middle Horizontal Divider
-    printButton("<< BACK >>", back[0], back[1], back[2], back[3], SMALL);
-    printButton("SAVE", prSAVE[0], prSAVE[1], prSAVE[2], prSAVE[3], SMALL);
-    printButton("CANCEL", canC[0], canC[1], canC[2], canC[3], SMALL);
-
-    printButton ("+", houU[0], houU[1], houU[2], houU[3], true);     //hour up
-    printButton ("+", minU[0], minU[1], minU[2], minU[3], true);     //min up
-    printButton ("-", houD[0], houD[1], houD[2], houD[3], true);     //hour down
-    printButton ("-", minD[0], minD[1], minD[2], minD[3], true);     //min down
-    if (setTimeFormat==1)
-      { printButton ("+", ampmU[0], ampmU[1], ampmU[2], ampmU[3], true); //AM/PM up    
-        printButton ("-", ampmD[0], ampmD[1], ampmD[2], ampmD[3], true);}//AM/PM down    
-        
-    printButton ("+", monU[0], monU[1], monU[2], monU[3], true);     //month up
-    printButton ("+", dayU[0], dayU[1], dayU[2], dayU[3], true);     //day up
-    printButton ("+", yeaU[0], yeaU[1], yeaU[2], yeaU[3], true);     //year up
-    printButton ("-", monD[0], monD[1], monD[2], monD[3], true);     //month down
-    printButton ("-", dayD[0], dayD[1], dayD[2], dayD[3], true);     //day down
-    printButton ("-", yeaD[0], yeaD[1], yeaD[2], yeaD[3], true);     //year down
-  }
-  
-  ReadFromEEPROM();
-  timeDispH=rtcSet.hour; timeDispM=rtcSet.min; 
-  xTimeH=107; yTime=52; xColon=xTimeH+42;
-  xTimeM10=xTimeH+70; xTimeM1=xTimeH+86; xTimeAMPM=xTimeH+155;
-  timeChange();
-
-  setFont(LARGE, 255, 255, 255, 0, 0, 0);    
-  myGLCD.print("Date", 20, 142);
-  myGLCD.print("/", 149, 142);    
-  myGLCD.print("/", 219, 142);
-  if (setCalendarFormat==0)                             //DD/MM/YYYY Format
-    {
-     setFont(SMALL, 255, 255, 255, 0, 0, 0); 
-     myGLCD.print("(DD/MM/YYYY)", 5, 160); 
-     setFont(LARGE, 255, 255, 255, 0, 0, 0);          
-     if ((rtcSet.date>=0) && (rtcSet.date<=9))              //Set DAY
-       { myGLCD.print("0", 107, 142);
-         myGLCD.printNumI(rtcSet.date, 123, 142);}
-     else { myGLCD.printNumI(rtcSet.date, 107, 142);} 
-     if ((rtcSet.mon>=0) && (rtcSet.mon<=9))              //Set MONTH
-       { myGLCD.print("0", 177, 142);
-         myGLCD.printNumI(rtcSet.mon, 193, 142);}
-     else { myGLCD.printNumI(rtcSet.mon, 177, 142);} 
-    } else
-  if (setCalendarFormat==1)                             //MM/DD/YYYY Format
-    {
-     setFont(SMALL, 255, 255, 255, 0, 0, 0); 
-     myGLCD.print("(MM/DD/YYYY)", 5, 160); 
-     setFont(LARGE, 255, 255, 255, 0, 0, 0);          
-     if ((rtcSet.mon>=0) && (rtcSet.mon<=9))              //Set MONTH
-       { myGLCD.print("0", 107, 142);
-         myGLCD.printNumI(rtcSet.mon, 123, 142);}
-     else { myGLCD.printNumI(rtcSet.mon, 107, 142);} 
-     if ((rtcSet.date>=0) && (rtcSet.date<=9))              //Set DAY
-       { myGLCD.print("0", 177, 142);
-         myGLCD.printNumI(rtcSet.date, 193, 142);}
-     else { myGLCD.printNumI(rtcSet.date, 177, 142);} 
-    }  
-  myGLCD.printNumI(rtcSet.year, 247, 142);                //Set YEAR
-}
-
-
-void waitForIt(int x1, int y1, int x2, int y2)   // Draw a red frame while a button is touched
-{
-  myGLCD.setColor(255, 0, 0);
-  myGLCD.drawRoundRect (x1, y1, x2, y2);
-  while (myTouch.dataAvailable()) {
-    myTouch.read(); 
-  }
-  myGLCD.setColor(255, 255, 255);
-  myGLCD.drawRoundRect (x1, y1, x2, y2);
-}
-
-//-------------------------------------------------------------------------------------
-//				GENERAL SETTINGS SCREEN ************* dispScreen = 12
+//				GENERAL SETTINGS SCREEN dispScreen = 12
 //-------------------------------------------------------------------------------------
 
 void generalSettingsScreen()
@@ -680,6 +700,37 @@ void generalSettingsScreen()
 
   genSetSelect();
 }
+
+
+
+//-------------------------------------------------------------------------------------
+//					ABOUT SCREEN dispScreen = 15
+//-------------------------------------------------------------------------------------
+void AboutScreen()
+{ 
+  setFont(SMALL, 0, 255, 0, 0, 0 , 0);
+  myGLCD.print("Version: 0.1", CENTER, 20);
+  myGLCD.print("Written by Greg McCarthy", CENTER, 32);
+  
+  myGLCD.print("Main code based on Stilo", 5, 52);
+  myGLCD.print("http://code.google.com/p/stilo/", 5, 64);
+  
+  myGLCD.print("LED controlling algorithm based on", 5, 84);
+  myGLCD.print("Krusduino by Hugh Dangerfield", 5, 96);
+  myGLCD.print("and Dave Rosser", 5, 108);
+  myGLCD.print("http://code.google.com/p/dangerduino/", 5, 120);
+
+  myGLCD.setColor(64, 64, 64);
+
+
+  myGLCD.drawRect(0, 196, 319, 194);
+  printButton("<< BACK >>", back[0], back[1], back[2], back[3], SMALL);
+  printButton("CANCEL", canC[0], canC[1], canC[2], canC[3], SMALL);  
+
+}
+
+
+
 
 //-------------------------------------------------------------------------------------
 //						 TOUCH SCREEN
@@ -1022,13 +1073,13 @@ void processMyTouch()
              if ((y>=almP[1]) && (y<=almP[3]))                      //press alarm plus
                {
                 waitForIt(almP[0], almP[1], almP[2], almP[3]);
-           //     temp2beA += 0.1;
-          //      if (temp2beA >= 10) {
-           //       temp2beA = 9.9;  }
-           //     tempScreen();
-           //    }
+                temp2beA += 0.1;
+                if (temp2beA >= 10) {
+                  temp2beA = 9.9;  }
+                tempScreen();
+               }
             }
-         }
+         
   break;
   
   case 4:     // -------------- LED TEST OPTIONS SCREEN -----------------    
@@ -1606,37 +1657,6 @@ void processMyTouch()
   delay(100);
 }
 
-
-//-------------------------------------------------------------------------------------
-//					ABOUT SCREEN ****************** dispScreen = 15
-//-------------------------------------------------------------------------------------
-void AboutScreen()
-{ 
-  setFont(SMALL, 0, 255, 0, 0, 0 , 0);
-  myGLCD.print("Version: 0.1", CENTER, 20);
-  myGLCD.print("Written by Greg McCarthy", CENTER, 32);
-  
-  myGLCD.print("Main code based on Stilo", 5, 52);
-  myGLCD.print("http://code.google.com/p/stilo/", 5, 64);
-  
-  myGLCD.print("LED controlling algorithm based on", 5, 84);
-  myGLCD.print("Krusduino by Hugh Dangerfield", 5, 96);
-  myGLCD.print("and Dave Rosser", 5, 108);
-  myGLCD.print("http://code.google.com/p/dangerduino/", 5, 120);
-
-  myGLCD.setColor(64, 64, 64);
-
-
-  myGLCD.drawRect(0, 196, 319, 194);
-  printButton("<< BACK >>", back[0], back[1], back[2], back[3], SMALL);
-  printButton("CANCEL", canC[0], canC[1], canC[2], canC[3], SMALL);  
-
-}
-
-
-
-
- 
 //-------------------------------------------------------------------------------------
 //-------------------------------------------------------------------------------------
 
@@ -1687,24 +1707,4 @@ void clearScreen()
   myGLCD.fillRect(1, 15, 318, 226);
 }
 
-//-------------------------------------------------------------------------------------
-//					MENU SCREEN ********** dispScreen = 1 ************************/
-//-------------------------------------------------------------------------------------
 
-void menuScreen()
-{
-  printHeader("Choose Option");
-  
-  myGLCD.setColor(64, 64, 64);
-  myGLCD.drawRect(0, 196, 319, 194);
-  printButton("CANCEL", canC[0], canC[1], canC[2], canC[3], SMALL);  
-  
-  printButton("Time and Date", tanD[0], tanD[1], tanD[2], tanD[3]);
-  printButton("H2O Temp Control", temC[0], temC[1], temC[2], temC[3]);
- // printButton("WaveMaker", wave[0], wave[1], wave[2], wave[3]);
-  printButton("General Settings", gSet[0], gSet[1], gSet[2], gSet[3]);    
-  printButton("LED Testing", tesT[0], tesT[1], tesT[2], tesT[3]);
-  printButton("Change LED Values", ledChM[0], ledChM[1], ledChM[2], ledChM[3]);
- // printButton("Automatic Feeder", aFeed[0], aFeed[1], aFeed[2], aFeed[3]);
-  printButton("About", about[0], about[1], about[2], about[3]);  
-}
