@@ -392,12 +392,12 @@ int returnTimer = 0;                //Counter for Screen Retuen
 boolean SCREEN_RETURN = true;        //Auto Return to mainScreen() after so long of inactivity
 
 //int setScreenSaverTimer = (20)*12;   //how long in (minutes) before Screensaver comes on  
-int setScreenSaverTimer = 2;   //how long in (minutes) before Screensaver comes on  
+int setScreenSaverTimer = 30;   //how long in (minutes) before Screensaver comes on  
 
 int setReturnTimer = setScreenSaverTimer * .75;       //Will return to main screen after 75% of the amount of
                                      //time it takes before the screensaver turns on
     
-int setScreensaver = 2;              //ON=1 || OFF=2 (change in prog)
+int setScreensaver = 1;              //ON=1 || OFF=2 (change in prog)
 int screenSaverTimer = 0;            //counter for Screen Saver
                               
                                      
@@ -1444,8 +1444,7 @@ void TimeSaver(boolean refreshAll=false)
      if (mytime.hour>=22)
        { 
        myGLCD.printNumI(mytime.hour-12, 80, 95);
-       Serial.println("loc2");
-     }
+       }
       
      if ((mytime.hour>=0) && (mytime.hour<=11))                   //Display AM/PM
        { setFont(LARGE, 0, 0, 255, 0, 0, 0);
@@ -1454,9 +1453,7 @@ void TimeSaver(boolean refreshAll=false)
        { setFont(LARGE, 0, 0, 255, 0, 0, 0);
          myGLCD.print("PM", 244, 129);} 
     }
-  
-  DEBUG_PRINTLN(mytime.min);
-  
+
   myGLCD.setColor(0, 0, 255);
   myGLCD.setBackColor(0, 0, 0);  
   myGLCD.setFont(SevenSegNumFont);
@@ -1728,12 +1725,12 @@ unsigned long currentMillis = millis();
 
   if (now - lastSampleTime >= oneMinute)    //Upload data to Thingspeak every minute
     {
-     Serial.print("freeMemory()=");
-     Serial.println(availableMemory());
+     DEBUG_PRINTLN("freeMemory()=");
+     DEBUG_PRINTLN(availableMemory());
      lastSampleTime += oneMinute;
-     DEBUG_PRINTLN("Transmit DataP");
+     DEBUG_PRINTLN("Transmit Data");
      TransmitData();
-     DEBUG_PRINTLN("Transmit data complete");
+    // DEBUG_PRINTLN("Transmit data complete");
    }
  
 	
