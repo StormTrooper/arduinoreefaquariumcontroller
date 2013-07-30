@@ -7,7 +7,7 @@ void TransmitData()
       digitalWrite(TX_led, LOW);
       
           if (!ether.dnsLookup(website))
-        Serial.println("DNS failed");
+        DEBUG_PRINTLN("DNS failed");
        // ether.printIp("SRV: ", ether.hisip);
         DEBUG_PRINTLN("Ethernet Okay");
 
