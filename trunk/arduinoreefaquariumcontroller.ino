@@ -1725,8 +1725,8 @@ unsigned long currentMillis = millis();
 
   if (now - lastSampleTime >= oneMinute)    //Upload data to Thingspeak every minute
     {
-     DEBUG_PRINTLN("freeMemory()=");
-     DEBUG_PRINTLN(availableMemory());
+     //DEBUG_PRINT("freeMemory()=");
+     //DEBUG_PRINTLN(availableMemory());
      lastSampleTime += oneMinute;
      DEBUG_PRINTLN("Transmit Data");
      TransmitData();
