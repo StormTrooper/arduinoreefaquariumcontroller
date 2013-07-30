@@ -47,8 +47,7 @@ void CompareNTPTime(time_t t, char *tz)
                    
     if ((mytime.hour != hour(t)) or (mytime.min != minute(t)) or (mytime.date != day(t)) or (mytime.mon != month(t)) or (mytime.year != year(t)) ) 
          {
-              Serial.println("time needs to be corrected");
-              //rtc.setDOW(dayStr(weekday(t)));        // Set Day-of-Week to SUNDAY
+              DEBUG_PRINTLN("time needs to be corrected");
               rtc.setTime(hour(t), minute(t), second(t));     // Set the time to 12:00:00 (24hr format)
               rtc.setDate(day(t), month(t), year(t));   // Set the date to October 3th, 2010
           } else {

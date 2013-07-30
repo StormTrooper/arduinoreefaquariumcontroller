@@ -8,20 +8,20 @@ void TransmitData()
       
           if (!ether.dnsLookup(website))
         Serial.println("DNS failed");
-        ether.printIp("SRV: ", ether.hisip);
+       // ether.printIp("SRV: ", ether.hisip);
         DEBUG_PRINTLN("Ethernet Okay");
 
       
       DEBUG_PRINTLN("Ethernet routine called");
       
-      DEBUG_PRINTLN(pH);
+      //DEBUG_PRINTLN(pH);
             
-      DEBUG_PRINT("Temp:");
-      DEBUG_PRINTLN(tempW);
+      //DEBUG_PRINT("Temp:");
+      //DEBUG_PRINTLN(tempW);
         
       
-      DEBUG_PRINTLN();
-      DEBUG_PRINT("<<< REQ ");
+     //DEBUG_PRINTLN();
+     // DEBUG_PRINT("<<< REQ ");
     
       FillOutBuff (pH, 29, 5, 2);    //pH
       FillOutBuff (Fanspeed, 42, 4, 0);    //Fanspeed
@@ -31,10 +31,10 @@ void TransmitData()
       
       ether.browseUrl(PSTR("/update/"), cbuff , website, my_callback);
   
-      DEBUG_PRINTLN("Send");
-      DEBUG_PRINT("Count:");
-      DEBUG_PRINTLN(Counter);
-      Counter++;
+     // DEBUG_PRINTLN("Send");
+     // DEBUG_PRINT("Count:");
+     // DEBUG_PRINTLN(Counter);
+     // Counter++;
       
       DEBUG_PRINT("Uptime: ");
       DEBUG_PRINT(millis() / 60000);
