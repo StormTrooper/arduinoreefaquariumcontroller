@@ -1706,5 +1706,3 @@ void clearScreen()
   myGLCD.setColor(0, 0, 0);
   myGLCD.fillRect(1, 15, 318, 226);
 }
-
-
