@@ -59,8 +59,6 @@ ENC28J60 module sents data to Thingspeak
 // Definitions
 //----------------------------------------------------------------------------------------------------------------------------------
 
-//#define APIKEY "your api key here"
-
 #define SECS_YR_1900_2000  (3155673600UL)							// Number of seconds between 1-Jan-1900 and 1-Jan-1970, unix time starts 1970 and ntp time starts 1900.
 #define GETTIMEOFDAY_TO_NTP_OFFSET 2208988800UL
 #define	EPOCH_YR	1970									//(24L * 60L * 60L)
