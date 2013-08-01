@@ -1,28 +1,28 @@
 /*
-Arduino Aquarium controller for the Mega2560
+Arduino Aquarium controller for the Mega 2560
+    Version 1.0
+    Greg McCarthy  (greg AT mccarthy.za.net)
+
 Based on the code from:
     Jarduino - https://code.google.com/p/jarduino-aquarium-controller/
     Stilo - https://code.google.com/p/stilo/
     
-The below libraries were also used:    
+The below libraries are used:    
 DS1307 v1.1  http://henningkarlsen.com/electronics/library.php?id=34
-http://www.hacktronics.com/Tutorials/arduino-1-wire-tutorial.html
-http://www.geeetech.com/wiki/index.php/3.2TFT_LCD
-https://github.com/jcw/ethercard
-http://milesburton.com/Dallas_Temperature_Control_Library
-
-NTP Code:
-https://github.com/thiseldo/EtherCardExamples/blob/master/EtherCard_ntp/EtherCard_ntp.ino
-TimeZone
-https://github.com/JChristensen/Timezone
+UTFT         http://henningkarlsen.com/electronics/library.php?id=51
+UButtons     http://henningkarlsen.com/electronics/library.php?id=61
+UTouch       http://henningkarlsen.com/electronics/library.php?id=55
+EtherCard    https://github.com/jcw/ethercard
+DS18B20      http://milesburton.com/Dallas_Temperature_Control_Library
+NTP Code     https://github.com/thiseldo/EtherCardExamples/blob/master/EtherCard_ntp/EtherCard_ntp.ino
+TimeZone     https://github.com/JChristensen/Timezone
 
 
 Hardware
 Arduino Mega 2560
 3.2 TFT LCD
 Sensors: pH Sensor connected to A0
-DS18B20 Temperature sensors conncted to pin 9
-DS1307 RTC
+DS18B20 Temperature sensors conncted to pin DS1307 RTC
 LCD brightness connected to pin 11
 ENC28J60 module sents data to Thingspeak
 
@@ -41,8 +41,8 @@ ENC28J60 module sents data to Thingspeak
 #include <Time.h>
 #include <Timezone.h>   
 #include "key.h"
-#define DEBUG
 
+#define DEBUG
 #ifdef DEBUG
     #define DEBUG_PRINT(x) Serial.print(x)
 #else
@@ -66,7 +66,6 @@ ENC28J60 module sents data to Thingspeak
 #define	LEAPYEAR(year)	(!((year) % 4) && (((year) % 100) || !((year) % 400)))
 #define	YEARSIZE(year)	(LEAPYEAR(year) ? 366 : 365)
 
-#define ONE_WIRE_BUS 9
 
 // Find list of servers at http://support.ntp.org/bin/view/Servers/StratumTwoTimeServers
 // Please observe server restrictions with regard to access to these servers.
@@ -75,6 +74,31 @@ ENC28J60 module sents data to Thingspeak
 
 #define LARGE true
 #define SMALL false
+
+//----------------------------------------------------------------------------------------------------------------------------------
+// Pins
+//----------------------------------------------------------------------------------------------------------------------------------
+
+#define ONE_WIRE_BUS 9
+
+//Define the PWM PINS for the LEDs
+const int ledPinSump = 14;            //PowerLed Shield pin 10
+const int ledPinBlue = 15;            //PowerLed Shield pin 5
+const int ledPinWhite = 16;           //PowerLed Shield pin 3
+const int ledPinRoyBlue = 17;        //PowerLed Shield pin 6
+const int ledPinRed = 18;            //PowerLed Shield pin 9
+const int ledPinUV = 19;             //PowerLed Shield pin 11
+const int ledPinMoon = 13;           //PowerLed Shield pin 13 (Modification to Shield & NOT controlled by an array)
+const int tempAlarmPin = 7;         //Buzzer Alarm for Temperature offsets
+
+const int pH_AnalogPin = 0;                //pH Probe
+const int TX_led = 12;                     //Transmit data led
+
+const int sda = 20;                  // sda for DS1307
+const int scl = 21;                  // scl for DS1307
+
+const byte LCDbrightPin = 11;    //pin to controll LCD brightness
+//dont use pin 10 - for some reason it causes ethernet module to crash
 
 
 //----------------------------------------------------------------------------------------------------------------------------------
@@ -89,45 +113,26 @@ Timezone myTZ(myDST, mySTD);
 TimeChangeRule *tcr;        //pointer to the time change rule, use to get TZ abbrev
 time_t utc, local;
 
-
 boolean RECOM_RCD = true;            //For Mean Well drivers change "true" to "false"
 boolean CLOCK_SCREENSAVER = true;    //For a Clock Screensaver "true" / Blank Screen "false"
                                     //You can turn the Screensaver ON/OFF in the pogram
 
-//Define the PWM PINS for the LEDs
-const int ledPinSump = 14;            //PowerLed Shield pin 10
-const int ledPinBlue = 15;            //PowerLed Shield pin 5
-const int ledPinWhite = 16;           //PowerLed Shield pin 3
-const int ledPinRoyBlue = 17;        //PowerLed Shield pin 6
-const int ledPinRed = 18;            //PowerLed Shield pin 9
-const int ledPinUV = 19;             //PowerLed Shield pin 11
-const int ledPinMoon = 13;           //PowerLed Shield pin 13 (Modification to Shield & NOT controlled by an array)
-const int tempAlarmPin = 7;         //Buzzer Alarm for Temperature offsets
-
-
+// Variables used for ethernet
 byte mymac[] = { 0xD4, 0x2A, 0xB3, 0xFF, 0xC9, 0xF9 };
 char website[] PROGMEM = "api.thingspeak.com";
-
 byte Ethernet::buffer[700];
 uint32_t timer;
 
-static int currentTimeserver = 0;
-
-
-// Create an entry for each timeserver to use
-prog_char ntp0[] PROGMEM = "0.uk.pool.ntp.org";
+//Variables used for NTP
+static int currentTimeServer = 0;
+prog_char ntp0[] PROGMEM = "0.uk.pool.ntp.org";                      // Create an entry for each timeserver to use
 prog_char ntp1[] PROGMEM = "1.uk.pool.ntp.org";
-
-
-
-// Now define another array in PROGMEM for the above strings
-prog_char *ntpList[] PROGMEM = { ntp0, ntp1 };
+prog_char *ntpList[] PROGMEM = { ntp0, ntp1 };                       // Now define another array in PROGMEM for the above strings
 uint8_t clientPort = 123;
-
 uint32_t lastNTPUpdate = 0;
 uint32_t timeLong;
 
-char tbuff[30];
+char tbuff[30];                                                      //Variable for ethernet
 
 // ph, fan, water, heatsink, outside
 char cbuff[]= "?key=" APIKEY "&field1=00.00&field2=0000&field3=00.00&field4=00.00&field5=00.00";
@@ -289,8 +294,6 @@ int timeDispH, timeDispM,
     xTimeAMPM, xColon;
 
 
-
-
 /**************************** CHOOSE OPTION MENU BUTTONS *****************************/
 const int tanD[]= {10, 29, 155, 59};        //"TIME and DATE" settings
 const int temC[]= {10, 69, 155, 99};        //"H2O TEMP CONTROL" settings
@@ -339,8 +342,6 @@ const int miM[]= {90, 115, 115, 140};       //MI minus
 const int miP[]= {205, 115, 230, 140};      //MI plus
 
 
-                                     //you wish the New Moon to Shine (it will increase from here to MI)
-
 unsigned int *MoonPic;               //Pointer to the Lunar Phase Pics
 extern unsigned int                  //Lunar Phase Pics
   New_Moon[0x9C4],
@@ -351,9 +352,6 @@ extern unsigned int                  //Lunar Phase Pics
   Waning_Gibbous[0x9C4],
   Last_Quarter[0x9C4],
   Waning_Crescent[0x9C4];
-
-
-//int setTempScale = 0;                //Celsius=0 || Fahrenheit=1 (change in prog)
 
 int LedChangTime = 0;                //LED change page, time and values
 
@@ -398,26 +396,19 @@ int setReturnTimer = setScreenSaverTimer * .75;       //Will return to main scre
 int setScreensaver = 1;              //ON=1 || OFF=2 (change in prog)
 int screenSaverTimer = 0;            //counter for Screen Saver
                               
-                                     
 long previousMillisLED = 0;          //Used in the Test LED Array Function
 long previousMillisWave = 0;         //Used in the WaveMaker Function wave_output()
 long previousMillisFive = 0;         //Used in the Main Loop (Checks Time,Temp,LEDs,Screen)
 long previousMillisAlarm = 0;        //Used in the Alarm
 
-const byte LCDbrightPin = 11;    //pin to controll LCD brightness
-//dont use pin 10 - for some reason it causes ethernet module to crash
 byte LCDbright = 70; 
 
-int Fanspeed = 5321;
+int Fanspeed = 5321;              //Still need to build in a routine to read fan speed....I think :)
 
-int pH_AnalogPin = 0;
-int TX_led = 12;
+
+//Variables for pH
 int pH_SensorValue;        //Analog value of pin
-
 float pH = 0;
-//float WaterTemp = 0;
-//float HeatsinkTemp = 0;
-//float OutsideTemp = 0;
 
 int freeCount;
 int Counter=0;
@@ -439,7 +430,7 @@ OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
 
 // Init DS1307
-DS1307 rtc(20,21);
+DS1307 rtc(sda,scl);
 
 // Declare which fonts we will be using
 extern uint8_t SmallFont[];
@@ -447,16 +438,13 @@ extern uint8_t SevenSegNumFont[];
 extern uint8_t BigFont[];
 extern uint8_t Dingbats1_XL[];
 
+
 //                  RS,WR,CS, Reset
 UTFT myGLCD(ITDB32S,38,39,40,41);   // Remember to change the model parameter to suit your display module!
 UTouch        myTouch(6,5,4,3,2);
 
 // Finally we set up UTFT_Buttons :)
 UTFT_Buttons  myButtons(&myGLCD, &myTouch);
-
-int i=1;
-//Time t;
-//int Xsize;
 
 //----------------------------------------------------------------------------------------------------------------------------------
 // EEPROM FUNCTIONS
@@ -558,9 +546,6 @@ void SaveGenSetsToEEPROM()
   EEPROM_writeAnything(640, GENERALsettings);
 }
 
-
-
-void(* resetFunc) (void) = 0; //declare reset function @ address 0
 
 /************************************* Month length for NTP *************************************/
 uint8_t monthlen(uint8_t isleapyear,uint8_t month){
@@ -770,8 +755,6 @@ void ReadFromEEPROM()
 //----------------------------------------------------------------------------------------------------------------------------------
 void SaveRTC()
 {
-  //int year=rtcSet.year - 2000;
-      
   //rtc.stop();            //RTC clock setup 
   rtc.setTime(rtcSet.hour, rtcSet.min, rtcSet.sec);      // Set time
 
@@ -820,7 +803,6 @@ void TimeDateBar(boolean refreshAll=false)
      myGLCD.print(bufferT, 215, 227);            //Display time
     }
 
-
   if (mytime.mon==1)  { month= "JAN "; }             //Convert the month to its name
   if (mytime.mon==2)  { month= "FEB "; }
   if (mytime.mon==3)  { month= "MAR "; }
@@ -865,10 +847,8 @@ void checkTempC()
    
    // Convert the analog reading (which goes from 0 - 1023) to a voltage (0 - 5V):
    pH = (14.0 / 3.148) * pH_SensorValue * (5.0 / 1023.0);
-   
-   
+ 
   tempW = (sensors.getTempC(WaterThermometer));  //read water temperature
-  
   
   tempH = (sensors.getTempC(HeatsinkThermometer));   //read hood's heatsink temperature
   tempS = (sensors.getTempC(SumpThermometer));   //read Outside temperature
@@ -1049,7 +1029,7 @@ void mainScreen(boolean refreshAll=false)
      char bufferLP[16];
      LP.toCharArray(bufferLP, 16);
      myGLCD.print(bufferLP, 180, 96);            //Print Moon Phase Description to LCD
-    float lunarCycle = moonPhase(mytime.year, mytime.mon, mytime.date); //get a value for the lunar cycle
+     float lunarCycle = moonPhase(mytime.year, mytime.mon, mytime.date); //get a value for the lunar cycle
      
      if ((lunarCycle*100) < 1)                   //Print % of Full to LCD
        { myGLCD.print(" 0.0", 188, 108); }
@@ -1255,8 +1235,6 @@ void mainScreen(boolean refreshAll=false)
          myGLCD.fillRect(292, 174, 300, 186);}
     }
    
-  //write ph and fanspeed to lcd here
-  
   if ((tempAlarmflag==true)&&(tempHeatflag==true))     //Alarm: H20 temp Below offsets
     { setFont(LARGE, 0, 0, 255, 0, 0, 0);
       myGLCD.print("ALARM!!", 185, 204);}    
@@ -1264,6 +1242,10 @@ void mainScreen(boolean refreshAll=false)
     { setFont(LARGE, 255, 0, 0, 0, 0, 0);
       myGLCD.print("ALARM!!", 185, 204);}
 }
+
+//----------------------------------------------------------------------------------------------------------------------------------
+// Return to main screen
+//----------------------------------------------------------------------------------------------------------------------------------
 
 void screenReturn()                                    //Auto Return to MainScreen()
 {
@@ -1288,11 +1270,10 @@ void screenReturn()                                    //Auto Return to MainScre
   }
 }
 
-/******************************** END OF MAIN SCREEN **********************************/
-
-
-
-int LedToPercent (int Led_out)                   //returns LED output in %
+//----------------------------------------------------------------------------------------------------------------------------------
+// Returns LED output in %
+//----------------------------------------------------------------------------------------------------------------------------------
+int LedToPercent (int Led_out)
 {
   int result;
  
@@ -1304,7 +1285,9 @@ int LedToPercent (int Led_out)                   //returns LED output in %
   return result; 
 }
 
-
+//----------------------------------------------------------------------------------------------------------------------------------
+// Draw bar graph
+//----------------------------------------------------------------------------------------------------------------------------------
 void drawBarGraph()
 {
   myGLCD.setColor(255, 255, 255);                //LED Chart
@@ -1404,7 +1387,9 @@ void ledChangerGadget()
   myGLCD.printNumI(cl_1, 255, 54);  
 }
 
-
+//----------------------------------------------------------------------------------------------------------------------------------
+// Screen Saver
+//----------------------------------------------------------------------------------------------------------------------------------
 void TimeSaver(boolean refreshAll=false)
 {
   if (setTimeFormat==0)                                 //24HR Format
@@ -1484,7 +1469,9 @@ void screenSaver()                               //Make the Screen Go Blank afte
 }
 
 
-
+//----------------------------------------------------------------------------------------------------------------------------------
+// General Selection Options
+//----------------------------------------------------------------------------------------------------------------------------------
 void genSetSelect()
 {
   if (setCalendarFormat==0)                      //Calendar Format Buttons
@@ -1581,7 +1568,6 @@ void genSetSelect()
 //--------------------------------------------------------------------------------------------------------------------
 //                                                          SETUP
 //--------------------------------------------------------------------------------------------------------------------
-
 void setup()
 {
   Serial.begin(57600);
@@ -1594,7 +1580,7 @@ void setup()
   DEBUG_PRINTLN("Setup Ethernet");
   
  //Setup the LCD
-  byte bout = map(LCDbright, 0, 100, 0, 255);          //Set LCD brightness
+  byte bout = map(LCDbright, 0, 100, 0, 255);                                                    //Set LCD brightness
   analogWrite(LCDbrightPin, bout);
   
   myGLCD.InitLCD();										//Init LCD Screeb
@@ -1612,11 +1598,10 @@ void setup()
   myButtons.setTextFont(BigFont);
   myButtons.setSymbolFont(Dingbats1_XL);
   
-  delay(500);  //Give everything a chance to settle
+  delay(500);                                                                                  //Give everything a chance to settle
 
-   lastNTPUpdate = millis();
-  
-  
+  lastNTPUpdate = millis();
+    
   if (ether.begin(sizeof Ethernet::buffer, mymac,8 ) == 0) 
     DEBUG_PRINTLN( "Failed to access Ethernet controller");
   if (!ether.dhcpSetup())
@@ -1629,18 +1614,14 @@ void setup()
     }
     
   ether.printIp("IP:  ", ether.myip);
-  //ether.printIp("GW:  ", ether.gwip);  
-  //ether.printIp("DNS: ", ether.dnsip);  
-
+  
   if (!ether.dnsLookup(website))
     Serial.println("DNS failed");
     ether.printIp("SRV: ", ether.hisip);
     DEBUG_PRINTLN("Ethernet Okay");
 
-     // Start up the library
-    sensors.begin();
-    // set the resolution to 10 bit (good enough?)
-    sensors.setResolution(WaterThermometer, 10);
+    sensors.begin();                                                                                       // Start up the library
+    sensors.setResolution(WaterThermometer, 10);                                                           // set the resolution to 10 bit (good enough?)
     sensors.setResolution(HeatsinkThermometer, 10);
     sensors.setResolution(SumpThermometer, 10);
 
@@ -1651,7 +1632,8 @@ void setup()
     LED_levels_output();
     mainScreen(true);
     
-    // Set the clock to run-mode
+    // Set the clock to run-mode - not sure if we need this?
+    
   rtc.halt(false);
   
   wdt_enable(WDTO_8S);										//Enable wdt for 8 secs in case code crashes
@@ -1715,7 +1697,6 @@ unsigned long currentMillis = millis();
         { mainScreen();}
     }
     
-    
   const unsigned long oneMinute = 60 * 1000UL;
   static unsigned long lastSampleTime = 0 - oneMinute;
   unsigned long now = millis();
@@ -1733,11 +1714,13 @@ unsigned long currentMillis = millis();
  
 	
       if ((lastNTPUpdate + 15*60000L < millis()) and (UseEthernet = true)) 
-   
-    {                      //Check NTP Time every 15 mins
-       DEBUG_PRINTLN("Get NTP");
-       getNTP();
-       DEBUG_PRINTLN("Got NTP");
-    }
- }
+           {                      //Check NTP Time every 15 mins
+             DEBUG_PRINTLN("Get NTP");
+             getNTP();
+             DEBUG_PRINTLN("Got NTP");
+           }
+}
+  
+// The End!!!
+
   

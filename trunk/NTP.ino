@@ -65,17 +65,18 @@ void getNTP()
     // time to send request
     lastNTPUpdate = millis();
     
-    if (!ether.dnsLookup( (char*)pgm_read_word(&(ntpList[currentTimeserver])) )) {
+    if (!ether.dnsLookup( (char*)pgm_read_word(&(ntpList[currentTimeServer])) )) {
        DEBUG_PRINTLN( F("NTP DNS failed" ));
     } else {
        ether.printIp("NTP SRV: ", ether.hisip);
        DEBUG_PRINT( F("Send NTP request " ));
-       DEBUG_PRINTLN( currentTimeserver);
+       DEBUG_PRINTLN( currentTimeServer);
     
        ether.ntpRequest(ether.hisip, clientPort);
        boolean WaitforResponse = false;
        
        //Loop here until we receive a response from ntp server
+       //Might need to relook at this and add a time out.
        while (WaitforResponse == false)
           {
               plen = ether.packetReceive();
@@ -96,7 +97,7 @@ void getNTP()
                }
          }
     }
-    if( ++currentTimeserver >= NUM_TIMESERVERS )
-       currentTimeserver = 0; 
+    if( ++currentTimeServer >= NUM_TIMESERVERS )
+       currentTimeServer = 0; 
 }
 
